@@ -33,9 +33,9 @@ y_hat <- X_sys %*% Theta # The values of the function
 
 # Calculating the variance
 e_ols <- yt - y_hat   # Errors
-#print(e_ols)
+print(e_ols)
 RSS_ols <- t(e_ols)%*%e_ols  # Squared errors
-#print(RSS_ols)
+print(RSS_ols)
 sigma2_ols <- as.numeric(RSS_ols/(n-p))  # variance, sigma^2
 #print(sigma2_ols)  
 V <- sigma2_ols * solve(t(X_sys)%*%X_sys)  # Variance of parameters
