@@ -42,5 +42,12 @@ print(V)
 
 b0 <- (sqrt(diag(V)))[1]
 b1 <- (sqrt(diag(V)))[2]
-print(b0)
-print(b1)
+print(b0)  # sigma for intercept
+print(b1)  # sigma for slope
+
+# 2.3
+
+x_test <- seq(from = 2020+11/12, by=1/12, length = 12)
+X_test_sys <- cbind(1,x_test)
+
+y_pred <- X_test_sys %*% Theta
