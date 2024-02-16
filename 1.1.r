@@ -2,7 +2,7 @@
 
 library(readxl)
 
-file_path <- "As1Test.xlsx"
+file_path <- "As1Train.xlsx"
 data <- read_excel(file_path)
 
 yt <- as.numeric(data[1, -1])
