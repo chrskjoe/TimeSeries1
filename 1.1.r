@@ -1,9 +1,9 @@
-# install.packages("readxl")
+install.packages("readxl")
 
 library(readxl)
 
 
-file_path <- '/Users/sanderandresen/Library/CloudStorage/OneDrive-DanmarksTekniskeUniversitet/Master DTU/2. Semester/TSA/Assignment 1/As1Test.xlsx'
+file_path <- 'As1Test.xlsx'
 data <- read_excel(file_path)
 
 yt <- as.numeric(data[1, -1])
