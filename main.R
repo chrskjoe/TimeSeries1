@@ -37,6 +37,7 @@ print(theta_hat)
 
 # 2.2
 y_hat <- X %*% theta_hat
+Y_hat_ols <- y_hat
 e <- yt - y_hat
 RSS <- t(e) %*% e
 sigma2 <- as.numeric(RSS / (n - p))
@@ -93,7 +94,7 @@ wls <- function(y_train, lambda, time, step, forecast) {
   n <- length(y_train)
   SIGMA <- diag(n)
   for (i in 1:n) {
-    SIGMA[i, i] <- lambda^(n - i)
+    SIGMA[i, i] <- 1/lambda^(n - i)
   }
   
   x = seq(from = time, by = step, length.out = n)
@@ -136,7 +137,85 @@ ggplot(data, aes(x = xt, y = yt)) +
 # geom_line(aes(x = x_forecast, y = res07[[2]]), color = "green") +
 # geom_line(aes(x = x_forecast, y = res06[[2]]), color = "yellow") +
 
+# 4
 
+# make new data by shifting x values to "trand model"
 
+n <- length(yt)
+print(n)
 
+xn <- seq(-(n - 1), 0, 1)
+print(xn)
+xn <- cbind(1, xn)
+print(xn)
+
+# 4.1
+
+f <- function(j) rbind(1, j)
+L <- matrix(c(1.,0., 1.,1.),
+            byrow=TRUE, nrow=2)
+Linv <- solve(L) 
+
+# 4.2
+# lambda does not matter here
+i <- 1
+F_N <- (lambda^0) * f(0) %*% t(f(0))
+h_N <- (lambda^0) * f(0) * yt[i]
+theta_N <- solve(F_N) %*% h_N
+print(F_N) 
+print(h_N)
+
+# 4.3
+lambda <- 0.9
+N <- 10
+x <- seq(-(n - 1), 0, 1)
+data <- data.frame(x = x, y = yt)
+# run i == 1 before run this
+for (i in 2:N) {
+  F_N <- F_N + lambda^(i - 1) * f(-(i - 1)) %*% t(f(-(i - 1)))
+  h_N <- lambda * Linv %*% h_N + f(0) * yt[i]
+  theta_N <- solve(F_N) %*% h_N
+  
+  yhat_N <- t(f(-(i - 1):(N - i))) %*% theta_N
+  plot_N <- ggplot(data, aes(x = x, y = yt)) +
+    geom_point() + 
+    geom_point(data = data[1:i,], aes(x = x[1:i], y = yhat_N[1:i]), col = "blue") + 
+    geom_line(data = data[1:i,], aes(x = x[1:i], y = yhat_N[1:i]), col = "green") + 
+    # geom_line(aes(x = x, y = yhat_ols), col = "red", linetype = 2) +  
+    ggtitle(paste0("N = ", i))
+  
+  print(plot_N)
+}
+
+# 4.4 & 4.5 & 4.6
+
+# want to save onestep predictions in dataframe (for lambda = 0.9):
+onestep_lamb_09  <- NA
+sixstep_lamb_09  <- NA
+twlvstep_lamb_09  <- NA
+data <- data.frame(x = x, y = yt)
+lambda <- 0.9
+N <- length(yt)
+for (i in 11:N) {
+  F_N <- F_N + lambda^(i - 1) * f(-(i - 1)) %*% t(f(-(i - 1)))
+  h_N <- lambda * Linv %*% h_N + f(0) * yt[i]
+  theta_N <- solve(F_N) %*% h_N
+  
+  #yhat_N <- t(f(-(i - 1):i + 12)) %*% theta_N
+  onestep_lamb_09[i + 1] <- t(f(1)) %*% theta_N
+  sixstep_lamb_09[i + 6] <- t(f(6)) %*% theta_N
+  twlvstep_lamb_09[i + 12] <- t(f(12)) %*% theta_N
+}
+
+data_onestep <- data.frame(x = seq(-(n - 1), 1, 1), y = onestep_lamb_09)
+data_sixstep <- data.frame(x = seq(-(n - 1), 6, 1), y = sixstep_lamb_09)
+data_twlvstep <- data.frame(x = seq(-(n - 1), 12, 1), y = twlvstep_lamb_09)
+
+plot_N <- ggplot(data, aes(x = x, y = yt)) +
+  geom_point() + 
+  geom_point(data = data_onestep, aes(y = onestep_lamb_09), col = "blue", size = 3) +
+  geom_point(data = data_sixstep, aes(y = sixstep_lamb_09), col = "green", size = 3) +
+  geom_point(data = data_twlvstep, aes(y = twlvstep_lamb_09), col = "red", size = 3)
+
+print(plot_N)
 
