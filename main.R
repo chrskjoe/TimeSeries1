@@ -186,8 +186,10 @@ for (i in 2:N) {
   
   print(plot_N)
 }
+F_N_10 <- F_N
+h_N_10 <- h_N
 
-# 4.4 & 4.5 & 4.6
+# 4.4 & 4.5 
 
 # want to save onestep predictions in dataframe (for lambda = 0.9):
 onestep_lamb_09  <- NA
@@ -218,4 +220,57 @@ plot_N <- ggplot(data, aes(x = x, y = yt)) +
   geom_point(data = data_twlvstep, aes(y = twlvstep_lamb_09), col = "red", size = 3)
 
 print(plot_N)
+
+# 4.6 & 4.7 & 4.8 & 4.9 
+
+lamdas <- seq(0.55, 0.95, 0.01) 
+rsmd_onestep <- vector("numeric", length(lamdas))
+rsmd_sixstep <- vector("numeric", length(lamdas))
+rsmd_twlvstep <- vector("numeric", length(lamdas))
+
+data <- data.frame(x = x, y = yt)
+for (j in seq_along(lamdas)) {
+  lambda <- lamdas[j]
+  N <- length(yt)
+  i <- 1
+  F_N <- (lambda^0) * f(0) %*% t(f(0))
+  h_N <- (lambda^0) * f(0) * yt[i]
+  onestep <- NA
+  sixstep  <- NA
+  twlvstep  <- NA
+  # iteration
+  for (i in 2:N) {
+    F_N <- F_N + lambda^(i - 1) * f(-(i - 1)) %*% t(f(-(i - 1)))
+    h_N <- lambda * Linv %*% h_N + f(0) * yt[i]
+    if (i > 10) {
+      theta_N <- solve(F_N) %*% h_N
+      
+      onestep[i + 1] <- t(f(1)) %*% theta_N
+      sixstep[i + 6] <- t(f(6)) %*% theta_N
+      twlvstep[i + 12] <- t(f(12)) %*% theta_N
+    }
+  }
+  # calculate root-mean-square error
+  rsmd_onestep[j] <- sqrt(mean((onestep[11:N] - yt[11:N])^2, na.rm = TRUE))
+  rsmd_sixstep[j] <- sqrt(mean((sixstep[11:N] - yt[11:N])^2, na.rm = TRUE))
+  rsmd_twlvstep[j] <- sqrt(mean((twlvstep[11:N] - yt[11:N])^2, na.rm = TRUE))
+}
+
+rmsd_data <- data.frame(
+  lambda = lamdas,
+  OneStep = rsmd_onestep,
+  SixStep = rsmd_sixstep,
+  TwelveStep = rsmd_twlvstep
+)
+long_rmsd_data <- pivot_longer(rmsd_data, cols = -lambda, names_to = "Horizon", values_to = "RMSD")
+ggplot(long_rmsd_data, aes(x = lambda, y = RMSD, color = Horizon, group = Horizon)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Lambda", y = "RMSD", title = "RMSD for Different Forecast Horizons") +
+  theme_minimal() +
+  scale_color_manual(values = c("OneStep" = "red", "SixStep" = "blue", "TwelveStep" = "green")) +
+  theme(legend.title = element_blank())  # Hides the legend title if desired
+
+# 4.10
+
 
